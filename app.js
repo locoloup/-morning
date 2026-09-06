@@ -275,9 +275,12 @@ async function supabaseFetch(path, options={}) {
   return text ? JSON.parse(text) : null;
 }
 
-async function syncPull(forceMerge=false) {
+async function syncPull(forceSync=false) {
   if (!isSyncReady()) return;
-  const rows = await supabaseFetch(`routine_state?sync_id=eq.${encodeURIComponent(settings.syncId)}&select=*`);
+
+  const rows = await supabaseFetch(
+    `routine_state?sync_id=eq.${encodeURIComponent(settings.syncId)}&select=*`
+  );
   const remote = rows?.[0];
 
   if (!remote) {
@@ -285,18 +288,22 @@ async function syncPull(forceMerge=false) {
     return;
   }
 
-  const remoteData = remote.payload || { days:{}, updatedAt:0 };
-  // Merge day-by-day, prefer latest whole local/remote state if timestamps differ.
-  // For simple single-user routine this avoids losing history from either device.
-  const mergedDays = { ...(remoteData.days || {}), ...(data.days || {}) };
-  data = {
-    days: mergedDays,
-    updatedAt: Math.max(remoteData.updatedAt || 0, data.updatedAt || 0)
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  renderAll();
+  const remoteData = remote.payload || { days: {}, updatedAt: 0 };
+  const remoteUpdated = Number(remoteData.updatedAt || 0);
+  const localUpdated = Number(data.updatedAt || 0);
 
-  if (forceMerge) await syncPush();
+  // The newest device wins. This is much safer than merging an entire local
+  // "today" object over the remote one, which could erase remote checkmarks.
+  if (remoteUpdated > localUpdated) {
+    data = remoteData;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    renderAll();
+  } else if (localUpdated > remoteUpdated) {
+    await syncPush();
+  } else if (forceSync) {
+    // Same timestamp/state: make sure the row is present and current.
+    await syncPush();
+  }
 }
 
 async function syncPush() {
@@ -323,6 +330,13 @@ window.addEventListener("focus", () => syncPull().catch(()=>{}));
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") syncPull().catch(()=>{});
 });
+
+// Keep Mac and iPhone reasonably fresh while the app is open.
+setInterval(() => {
+  if (document.visibilityState === "visible") {
+    syncPull().catch(()=>{});
+  }
+}, 4000);
 
 // PWA registration
 if ("serviceWorker" in navigator) {
