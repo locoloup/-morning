@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f5ef" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Morning" />
+  <title>Morning Routine</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow" id="todayLabel">Сегодня</div>
+        <h1>Morning Routine</h1>
+      </div>
+      <button id="settingsBtn" class="icon-btn" aria-label="Настройки">•••</button>
+    </header>
+
+    <section id="todayView" class="view active">
+      <div class="progress-card">
+        <div class="progress-head">
+          <div>
+            <div class="big-number"><span id="doneCount">0</span><span class="muted">/5</span></div>
+            <div class="subtle">выполнено сегодня</div>
+          </div>
+          <div class="streak-box">
+            <div class="streak-number">🔥 <span id="streakCount">0</span></div>
+            <div class="subtle">streak</div>
+          </div>
+        </div>
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+      </div>
+
+      <div id="taskList" class="task-list"></div>
+
+      <div class="completion-note" id="completionNote" hidden>
+        <div class="completion-emoji">✓</div>
+        <div>
+          <strong>Утро закрыто.</strong>
+          <div class="subtle">5 из 5 — отличный старт дня.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="historyView" class="view">
+      <div class="section-head">
+        <h2>История</h2>
+        <div class="subtle">Что именно было сделано в каждый день</div>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+
+    <section id="statsView" class="view">
+      <div class="section-head">
+        <h2>Статистика</h2>
+        <div class="subtle">Последние 30 дней</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statPerfect">0</div>
+          <div class="subtle">дней 5/5</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statRate">0%</div>
+          <div class="subtle">выполнения</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">30 дней</div>
+        <div id="heatmap" class="heatmap"></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">По привычкам</div>
+        <div id="habitStats" class="habit-stats"></div>
+      </div>
+    </section>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-view="todayView">Сегодня</button>
+      <button class="nav-btn" data-view="historyView">История</button>
+      <button class="nav-btn" data-view="statsView">Статистика</button>
+    </nav>
+  </main>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">Настройки</div>
+          <h3>Синхронизация</h3>
+        </div>
+        <button value="cancel" class="icon-btn">×</button>
+      </div>
+
+      <p class="dialog-copy">
+        Приложение уже работает офлайн на этом устройстве. Для синхронизации между iPhone и компьютером
+        подключи бесплатный Supabase-проект.
+      </p>
+
+      <label>
+        Supabase Project URL
+        <input id="supabaseUrl" placeholder="https://xxxx.supabase.co" autocomplete="off" />
+      </label>
+      <label>
+        Supabase anon key
+        <textarea id="supabaseKey" rows="4" placeholder="eyJhbGciOi..."></textarea>
+      </label>
+      <label>
+        Sync ID
+        <input id="syncId" placeholder="например: alan-morning-2026" autocomplete="off" />
+      </label>
+
+      <div class="hint">
+        Один и тот же Sync ID + те же Supabase данные на обоих устройствах = одна история.
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" id="disconnectBtn" class="secondary-btn">Отключить sync</button>
+        <button type="button" id="saveSettingsBtn" class="primary-btn">Сохранить</button>
+      </div>
+
+      <div id="syncStatus" class="sync-status"></div>
+
+      <details>
+        <summary>Как подключить Supabase за 3–5 минут</summary>
+        <ol>
+          <li>Создай бесплатный проект на supabase.com.</li>
+          <li>В SQL Editor выполни SQL из файла <code>supabase.sql</code>.</li>
+          <li>Project Settings → API: скопируй Project URL и anon public key.</li>
+          <li>Вставь их сюда и придумай одинаковый Sync ID на обоих устройствах.</li>
+        </ol>
+      </details>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
